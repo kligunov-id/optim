@@ -36,6 +36,12 @@ All instances used in training are generated randomly with costs $c_{ijk}$ sampl
 
 An alternative scheme is proposed in [[2]](#2). Three different sets $I$, $J$ and $K$ of $N$ points on a 2-dimesional plane are generated randomly and uniformly from a $[0, 1]^2$ square. Distances between each pair of points from different sets are then calculated and costs $c_{ijk}$ are set to be equal to $\text{dist}(I_i, J_j) + \text{dist}(J_j, K_k) + \text{dist}(K_k, I_i)$. Many different triangular inequalities arise as the consequnce of the procedure, so potential for some performance improvements or new strategies is created. An 18-instance dataset with relatively large N (33 and 66) is provided in the paper as well, alongside with the globaly optimal solutions. Another paper [[3]](#3) reports perfomance on the dataset for various classical algorithms and heuristics, making it an interesting benchmark.
 
+## Repository content
+
+#### gen.py
+
+A simple utility programm is provided under the name `gen.py` which calculates average scores for random and greedy assignments for random 3AP instances. It presents them in the table with respect to the size of instances $N$. The scores are to be used as a quick reference (to provide typical total cost estimate, which might be usefull during training).
+
 ## References
 
 <a name="1">[1]</a> Xu et al. (2020). Deep Neural Network Approximated Dynamic Programming for Combinatorial Optimization [pdf](https://cdn.aaai.org/ojs/5531/5531-13-8756-1-10-20200512.pdf)
