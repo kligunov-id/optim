@@ -44,14 +44,27 @@ class Agent:
             self.__dict__.update(hyper_params)
 
         self.value_networks = [ClassicalValueEstimator(n=0), ClassicalValueEstimator(n=1)]
-        self.losses = []
         for i in range(2, n):
-            loss = self.pretrain_new_network()
-            self.losses.append(loss)
-        self.fine_tune()
+            self.pretrain_new_network()
+        if n > 2:
+            self.fine_tune()
+        for i in range(2, n):
+            self.save_weights(f"finetune-{i}", self.value_networks[i])
     
     def log(self, name, data):
         np.save(open(f"./logs/{name}.npy", "wb"), np.array(data))
+    
+    def save_weights(self, name, nn_module):
+        torch.save(nn_module.state_dict(), f"./weights/{name}.pt")
+
+    @classmethod
+    def load(cls, n, save_prefix="finetune"):
+        agent = cls()
+        for i in range(2, n):
+            agent.value_networks.append(ValueNetwork(n=i))
+            agent.value_networks[-1].load_state_dict(torch.load(f"./weights/{save_prefix}-{i}.pt"))
+            agent.n += 1
+        return agent
 
     def pretrain_new_network(self):
         new_network = ValueNetwork(n=self.n)
@@ -70,6 +83,7 @@ class Agent:
                 optimizer.step()
                 loss_history.append(loss.item())
         self.log(f"loss_{self.n}", loss_history)
+        self.save_weights(f"pretrain-{self.n}", new_network)
         self.value_networks.append(new_network)
         self.n += 1
     
