@@ -71,7 +71,7 @@ class Agent:
         criterion = nn.MSELoss()
         optimizer = torch.optim.Adam(new_network.parameters(), lr=self.lr)
         loss_history = []
-        for epoch in trange(self.num_pretrain_epochs, desc=f"Pretraining for size {self.n}"):
+        for epoch in trange(self.num_pretrain_epochs, desc=f"Pretraining for size {self.n:2d}"):
             for iteration in range(self.num_pretrain_iters):
                 optimizer.zero_grad()
                 costs = torch.rand((self.batch_size, self.n, self.n, self.n))
