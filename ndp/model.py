@@ -30,14 +30,15 @@ class ClassicalValueEstimator:
             return costs[:, 0, 0, 0]
 
 class Agent:
-
-    lr = 3e-4
-    num_pretrain_epochs = 10
-    num_pretrain_iters = 100
+    
+    pretrain_lr = 3e-4
+    num_pretrain_iters = 300
     batch_size = 64
-    num_finetune_epochs = 1000
-    fine_tune_lr = 1e-4
-
+    
+    finetune_lr = 1e-4
+    num_finetune_iters = 20
+    finetune_batch_size = 50
+    
     def __init__(self, n=2, hyper_params=None):
         self.n = 2 # Will be later updated to match user requested n
         if hyper_params is not None:
@@ -48,15 +49,13 @@ class Agent:
             self.pretrain_new_network()
         if n > 2:
             self.fine_tune()
-        for i in range(2, n):
-            self.save_weights(f"finetune-{i}", self.value_networks[i])
     
     def log(self, name, data):
         np.save(open(f"./logs/{name}.npy", "wb"), np.array(data))
     
     def save_weights(self, name, nn_module):
         torch.save(nn_module.state_dict(), f"./weights/{name}.pt")
-
+    
     @classmethod
     def load(cls, n, save_prefix="finetune"):
         agent = cls()
@@ -65,23 +64,21 @@ class Agent:
             agent.value_networks[-1].load_state_dict(torch.load(f"./weights/{save_prefix}-{i}.pt"))
             agent.n += 1
         return agent
-
+    
     def pretrain_new_network(self):
         new_network = ValueNetwork(n=self.n)
         criterion = nn.MSELoss()
-        optimizer = torch.optim.Adam(new_network.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(new_network.parameters(), lr=self.pretrain_lr)
         loss_history = []
-        for epoch in trange(self.num_pretrain_epochs, desc=f"Pretraining for size {self.n:2d}"):
-            for iteration in range(self.num_pretrain_iters):
-                optimizer.zero_grad()
-                costs = torch.rand((self.batch_size, self.n, self.n, self.n))
-                pred_values = new_network(costs)
-                best_values = torch.tensor(
-                    [self.evaluate_position(cost) for cost in costs])
-                loss = criterion(pred_values, best_values)
-                loss.backward()
-                optimizer.step()
-                loss_history.append(loss.item())
+        for iteration in trange(self.num_pretrain_iters, desc=f"Pretraining for size {self.n:2d}"):
+            optimizer.zero_grad()
+            costs = torch.rand((self.batch_size, self.n, self.n, self.n))
+            pred_values = new_network(costs)
+            best_values = torch.tensor([self.evaluate_position(cost) for cost in costs])
+            loss = criterion(pred_values, best_values)
+            loss.backward()
+            optimizer.step()
+            loss_history.append(loss.item())
         self.log(f"loss_{self.n}", loss_history)
         self.save_weights(f"pretrain-{self.n}", new_network)
         self.value_networks.append(new_network)
@@ -130,18 +127,25 @@ class Agent:
         loss_history = []
         optimizer = torch.optim.Adam(
             itertools.chain(*[net.parameters() for net in self.value_networks[2:]]),
-            lr=self.fine_tune_lr)
+            lr=self.finetune_lr)
         criterion = nn.MSELoss()
-        for epoch in trange(self.num_finetune_epochs, desc=f"Fine-tuning"):
+        for iteration in trange(self.num_finetune_iters, desc=f"Fine-tuning"):
             optimizer.zero_grad()
-            cost = torch.rand((self.n - 1, self.n - 1, self.n - 1))
-            rewards, positions = self.get_rewards(cost, return_positions=True)
-            for i in range(self.n - 2, 0, -1):
-                rewards[i - 1] += rewards[i] # total reward is trailing sum of the immediate ones
-            pred_rewards = torch.concat(
-                [self.value_networks[self.n - i - 1](pos.unsqueeze(dim=0)) for i, pos in enumerate(positions)])
-            loss = criterion(pred_rewards, torch.tensor(rewards))
+            all_rewards = []
+            all_pred_rewards = []
+            for _ in range(self.finetune_batch_size):
+                cost = torch.rand((self.n - 1, self.n - 1, self.n - 1))
+                rewards, positions = self.get_rewards(cost, return_positions=True)
+                for i in range(self.n - 2, 0, -1):
+                    rewards[i - 1] += rewards[i] # total reward is trailing sum of the immediate ones
+                pred_rewards = torch.concat(
+                    [self.value_networks[self.n - i - 1](pos.unsqueeze(dim=0)) for i, pos in enumerate(positions)])
+                all_rewards.append(torch.tensor(rewards))
+                all_pred_rewards.append(pred_rewards)
+            loss = criterion(torch.concat(all_pred_rewards), torch.concat(all_rewards))
             loss.backward()
             optimizer.step()
             loss_history.append(loss.item())
         self.log("loss_finetune", loss_history)
+        for i in range(2, self.n):
+            self.save_weights(f"finetune-{i}", self.value_networks[i])

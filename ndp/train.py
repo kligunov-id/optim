@@ -16,8 +16,8 @@ def greedy(cost): # for comparison purposes only
     return immediate_reward + greedy(cost)
 
 def main():
-    N = 12
-    agent = Agent(N)
+    N = 20
+    agent = Agent(n=N)
     
     attempts = 10
     greedy_total_score = 0

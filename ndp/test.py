@@ -17,10 +17,10 @@ def greedy(cost): # for comparison purposes only
     return immidiate_reward + greedy(cost)
 
 def main():
-    N = 12
+    N = 20
     agent = Agent.load(n=N)
     
-    attempts = 1000
+    attempts = 300
     greedy_total_score = 0
     ndp_total_score = 0
     for _ in trange(attempts, desc="Testing"):
