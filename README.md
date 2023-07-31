@@ -58,7 +58,21 @@ During inference, we iteratively choose pair $(j, k)$ which achieves maximum sum
 
 During fine-tuning stage we first solve each problem instance of size $N - 1\times N - 1\times N - 1$ by following the strategy for the inference stage (i.e. iteratively choosing the best move according to reward estimations of pretrained neural networks; their weights are frozen during instance processing), while also recording all chosen moves. Those moves result in positions $s_{n-1}$, $s_{n-1}$, ..., $s_1$ (where indicies correspond to problem sizes). For each one we compare actual rewards (trailing sums of immediate rewards) to the predictions of networks (now with weights unfrozen). The loss is MSE between these values.
 
+Each network $Net_i$ is a simple fully connected feed-forward network with two hidden layers of sizes $4n^2$ and $8n$. 
+
 ## Results
+
+For the pretraining stage, we used learning rate of 3e-4 and batch size was set to 64. Following graph shows the results of training for the first 100 iterations and is very much typicall for all sizes.
+
+<p align="center">
+    <img src="/images/pretrain.png" alt="Pretrain loss history"/>
+</p>
+
+During fine-tuning, learning rate was redused to 1e-4 and batch size down to 50. Results for only 20 iterations are given, as training took significantly longer time per step than during the pretraining.
+
+<p align="center">
+<img src="/images/finetune.png" alt="Fine tune loss history" align="middle"/>
+</p>
 
 ## Discussions and future development
 
