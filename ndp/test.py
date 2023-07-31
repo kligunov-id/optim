@@ -20,15 +20,25 @@ def main():
     N = 20
     agent = Agent.load(n=N)
     
-    attempts = 300
-    greedy_total_score = 0
-    ndp_total_score = 0
-    for _ in trange(attempts, desc="Testing"):
-        instance = torch.rand((N, N, N))
-        greedy_total_score += greedy(instance.numpy())
-        ndp_total_score += agent.act(instance)
-    print(f"Greedy mean score: {greedy_total_score / attempts:.2f}")
-    print(f"NDP mean score: {ndp_total_score / attempts:.2f}")
+    attempts = 50
+    greedy_scores = []
+    ndp_scores = []
+    for n in trange(1, 21, desc="Testing"):
+        greedy_total_score = 0
+        ndp_total_score = 0
+        for _ in range(attempts):
+            instance = torch.rand((n, n, n))
+            greedy_total_score += greedy(instance.numpy())
+            ndp_total_score += agent.act(instance)
+        greedy_scores.append(greedy_total_score / attempts)
+        ndp_scores.append(ndp_total_score / attempts)
+    np.save(open(f"./logs/greedy_scores.npy", "wb"), np.array(greedy_scores))
+    np.save(open(f"./logs/ndp_scores.npy", "wb"), np.array(ndp_scores))
+
+    print('Estimated average scores on random 3AP instances:\n')
+    print(f"{'n': <3}{'Greedy':^10}{'NDP':^10}")
+    for n in range(1, 21):
+        print(f"{n:<3}{greedy_scores[n-1]:^10.2f}{ndp_scores[n-1]:^10.2f}")
 
 if __name__=="__main__":
     main()

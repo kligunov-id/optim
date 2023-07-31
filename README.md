@@ -74,6 +74,12 @@ During fine-tuning, learning rate was redused to 1e-4 and batch size down to 50.
 <img src="/images/finetune.png" alt="Fine tune loss history" align="middle"/>
 </p>
 
+To assess results, 50 random instances are generated for each problem size from 1 to 20, and average rewards are calculated for the greedy and the proposed NDP method. The scores are then normalized by dividing by the problem size. 
+
+<p align="center">
+<img src="/images/scores.png" alt="Fine tune loss history" align="middle"/>
+</p>
+
 ## Discussions and future development
 
 ## References
