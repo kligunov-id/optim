@@ -71,16 +71,26 @@ For the pretraining stage, we used learning rate of 3e-4 and batch size was set 
 During fine-tuning, learning rate was redused to 1e-4 and batch size down to 50. Results for only 20 iterations are given, as training took significantly longer time per step than during the pretraining.
 
 <p align="center">
-<img src="/images/finetune.png" alt="Fine tune loss history" align="middle"/>
+    <img src="/images/finetune.png" alt="Fine tune loss history" align="middle"/>
 </p>
+
+During both stages, loss function shows relatively fast convergence despite large number of weights (as is expected for the network with only few hidden layers), and is relatively stable. The latter is the main reason that value networks where chosen over policy ones, as policy gradients methods can suffer from learning instability. Fast convergence also allows for training with very few computational power.
 
 To assess results, 50 random instances are generated for each problem size from 1 to 20, and average rewards are calculated for the greedy and the proposed NDP method. The scores are then normalized by dividing by the problem size. 
 
 <p align="center">
-<img src="/images/scores.png" alt="Fine tune loss history" align="middle"/>
+    <img src="/images/scores.png" alt="Fine tune loss history" align="middle"/>
 </p>
 
-## Discussions and future development
+As can be derived from the experimental results, our network performs slightly better than greedy approach for relatively small $N$ less than 10. For the intermediate values of $10 \le N \le 20$ they perform very similar to each other, with hints indicating that greedy approach will probably overtake ours at larger values. Such decline in NDP effectiveness could have been expected, and is the sign that we scale the network size too slowly (asymptotically slower). On the other hand, further in increase in model size is undesirable, as currently we use over $4n^5$ weights, which contribute to $O(n^8)$ time complexity during inference or finetunning stage.
+
+## Discussions and future work
+
+First of all, as is known from the 2-dimensional version of the problem and can be suspected based on the normalized perfomance graph, greedy approach is extremely effective on random instances, with perfamance gap between it and the optimal solution being less than 10% for $N = 10$ and less than 5% for $N = 20$. This makes it very difficult to assess different approaches, as great variety in their intelligence or machine time consumption (from the most basic and the fastest greedy method, to the exponential in time optimal) leads to very few differences in the actual results. To overcome this problem, a method of obtaining hard instances should be developed. One can try to generate a large number of instances, and test each one to know whether it is difficult enough. This method, however, has two major downsides. It is computationally complex (as is obtaining true solutions), so it only allows to generate relatively small dataset, rather than on-the-go manner generation. The other problem is that in this case we do not really know instance distribution, which could be valuable since neural approaches could be very sensitive to the kind of distribution used (so stellar perfomance on certain distributions can not guarantee even mediocre on another one).
+
+On the other hand, NDP approach is a very general tool, and can be applied to virtually all NP-hard problems. It also can be enhanced using reinforcment learning techniques, for example actor-critic methods can be utilized to obtain significant perfomance boost, as policy networks can eliminate iteration over action space currently used to obtain policy, which would lead to only $O(n^6)$ time complexity with almost identical model size. This perfomance boost, however, would come with increased learning instability, though it would not be as significant as in pure policy-based approaches. 
+
+In general, inference stage time complexities of less than $O(n^6)$ should not be expected from neural network approaches regardless of exact arcitecture details. This is due to the fact the problem is global in nature, so every individual cost can impact final solution, so network size should be at least $O(n^5)$ to properly accomodate for all $n^3$ input values and their interactions and another $n$ in complexity arises from iterative nature of most neural approaches. If further complexity reduction is desired, methods to divide problem into smaller subproblems should be developed, or to reduce size $N$ before applying neural approaches. The latter can be probably implemented using continuous versions of Monte Carlo tree search or analogues.
 
 ## References
 
