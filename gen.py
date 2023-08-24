@@ -12,11 +12,11 @@ def greedy(costs):
         return 0
     if costs.shape[0] == 1:
         return costs[0,0,0]
-    immidiate_reward = costs.max()
+    immediate_reward = costs.max()
     indexes = np.unravel_index(costs.argmax(), costs.shape)
     for axis, index in enumerate(indexes):
         costs = np.delete(costs, index, axis=axis)
-    return immidiate_reward + greedy(costs)
+    return immediate_reward + greedy(costs)
 
 def get_avg(n, reps=20):
     costs = [gen(n) for _ in range(reps)]

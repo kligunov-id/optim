@@ -8,6 +8,8 @@ import itertools as its
 from model import Agent
 
 def greedy(cost):
+    if isinstance(cost, torch.Tensor):
+        cost = cost.numpy()
     if cost.shape[0] <= 1:
         return cost.sum()
     immediate_reward = cost.max()

@@ -36,7 +36,7 @@ All instances used in training are generated randomly with costs $c_{ijk}$ sampl
 
 An alternative scheme is proposed in [[2]](#2). Three different sets $I$, $J$ and $K$ of $N$ points on a 2-dimesional plane are generated randomly and uniformly from a $[0, 1]^2$ square. Distances between each pair of points from different sets are then calculated and costs $c_{ijk}$ are set to be equal to $\text{dist}(I_i, J_j) + \text{dist}(J_j, K_k) + \text{dist}(K_k, I_i)$. Many different triangular inequalities arise as the consequnce of the procedure, so potential for some performance improvements or new strategy discoveries is created. An 18-instance dataset with relatively large N (33 and 66) is provided in the paper as well, alongside with the globaly optimal solutions. Another research paper [[3]](#3) reports perfomance on this dataset for various classical algorithms and heuristics, making it an interesting benchmark.
 
-## Repository content
+## Approach
 
 #### gen.py
 
@@ -83,6 +83,33 @@ To assess results, 50 random instances are generated for each problem size from 
 </p>
 
 As can be derived from the experimental results, our network performs slightly better than greedy approach for relatively small $N$ less than 10. For the intermediate values of $10 \le N \le 20$ they perform very similar to each other, with hints indicating that greedy approach will probably overtake ours at larger values. Such decline in NDP effectiveness could have been expected, and is the sign that we scale the network size too slowly (asymptotically slower). On the other hand, further in increase in model size is undesirable, as currently we use over $4n^5$ weights, which contribute to $O(n^8)$ time complexity during inference or finetunning stage.
+
+## Model scaling
+
+One of the advantages of neural approaches is their exceptional ability to scale. By varying number of the parametrs, one can easily adjust balance between time (and space) comlexity and perfomance. In this experiment, we test a number of models for the fixed problem size $N = 10$ and varying sizes of their internal networks, which a set to be $k n^2$ for the first hidden layer and $4k n$ for the second. Perfomance (expressed as gap from the optimal solution obtained by the classical dynamic programming means) as a function of this scale factor $k$ is depicted on the following graph (note its log scale along x axis).
+
+<p align="center">
+    <img src="/images/scale.png" alt="Perfomance as a function of model size" align="middle"/>
+</p>
+
+Just as expected, perfomance exhibites a steady rise when increasing number of the parameters, which is convenient for finding a trade off between learning (and running) times and perfomance
+
+## Different datasets (populations)
+
+One of the interesting features of neural approaches is their (probable) sensibility to the instance classes. When trained on one population of instances, networks can adapt and potentially overfit to better perform on this specific population, while have very limited ability to solve instances from different populations. To assess the effects of overfitting (which is not necessarily bad in our scenario, as creating ensembles of neural models trained on different populations can potentialy yield better results than training a singular model on all of the available data), we train three models with the same parameters, but on the different populations of instances, described in the introduction and named uniform, beta and geom (short fro geometrical). These three models are then tested an all of this populations against each other and against greedy and optimal solutions. The results are presented on the bar chart below. Problem size was chosen to be $N=10$, and network hidden layers sizes are set to be $128 n$ $256 n$.
+
+<p align="center">
+    <img src="/images/experiment_datasets.png" alt="Perfomance on different datasets" align="middle"/>
+</p>
+
+We can see an expected overall tendency of model, perfoming on its own datasets at least as good as model trained on any other dataset (and at least just as good as the greedy approach). Its interesting that models, trained on beta and uniform distributed instances show very similar perfomance, and both fall back slightly on geom dataset, while NDP-geom has minor difficulties on beta and uniform datasets. This is probably solely due to the ranges, that individual cost occupied, with geometrical ranging from 0 to 3 with 0.9 mean (and probably concentrated higly around that mean) while beta and uniform being between 0 and 1.
+
+A relatively large gap between greedy and neural approaches is easily seen on the beta dataset. Its difficulty probably comes from the nature of cost distribution, which is close to binomial. On the truly binomial distribution, one has to maximize the number of non-zero costs taken, and actual values of them are not important (since they are all 1's). Greedy algorithms has no ability to count numbers in any way (which is essential to successful solution), while NDP approach has no such flaw.
+
+Geometrical instances, on the other hand, turned out to be the easiest for the greedy method, probably because of how clustered cost values turned out to be. Under this scenario, the number of costs picked stays the same, so there is no need to cound them, which opens up the way for greedy approach.
+
+Overall, overfitting largely is not present at this model sizes, apart from the ranges problem, which once again showcases the importance of data normalization. 
+
 
 ## Discussions and future work
 

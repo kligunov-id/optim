@@ -1,0 +1,7 @@
+uniform,beta,geom
+NDP-uniform,9.35,9.82,11.66
+NDP-beta,9.35,9.85,11.67
+NDP-geom,9.30,9.77,11.70
+Random,4.98,2.91,9.74
+Greedy,9.11,9.00,11.71
+Optimal,9.75,10.00,12.01
