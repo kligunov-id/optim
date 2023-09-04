@@ -1,4 +1,4 @@
-# TQ optimization project
+# LSAP neural optimization project
 
 This repository contains source code for the implementations of various approaches to the (axial) three-dimensional linear sum assingment problem, as well as readily deployable models.
 
